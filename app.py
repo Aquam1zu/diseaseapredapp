@@ -9,6 +9,45 @@ from tensorflow.keras.models import load_model
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
 MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
 
+# Set Streamlit dark theme and page configuration
+st.set_page_config(page_title="Disease Prediction System", page_icon="🦠", layout="centered", initial_sidebar_state="collapsed")
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #121212;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #6200ee;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #3700b3;
+    }
+    .stMultiselect>div>div>div {
+        background-color: #333333;
+        color: white;
+        border: 1px solid #6200ee;
+    }
+    .stTitle {
+        font-size: 36px;
+        font-weight: 600;
+        color: #6200ee;
+    }
+    .stText {
+        font-size: 18px;
+        color: #bb86fc;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Download Dataset
 csv_path = "Final_Augmented_dataset_Diseases_and_Symptoms.csv"
 if not os.path.exists(csv_path):
@@ -35,9 +74,13 @@ st.write("Select symptoms to predict the possible disease.")
 selected_symptoms = st.multiselect("Select symptoms:", SYMPTOMS)
 
 if st.button("Predict Disease"):
-    symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
-    prediction = model.predict(symptom_values)
-    predicted_index = np.argmax(prediction)
-    predicted_disease = DISEASES[predicted_index]
+    if not selected_symptoms:
+        st.warning("Please select at least one symptom.")
+    else:
+        symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
+        prediction = model.predict(symptom_values)
+        predicted_index = np.argmax(prediction)
+        predicted_disease = DISEASES[predicted_index]
 
-    st.success(f"Predicted Disease: **{predicted_disease}**")
+        st.success(f"Predicted Disease: **{predicted_disease}**")
+
