@@ -79,9 +79,11 @@ if st.button("Predict Disease"):
     description = get_disease_description(predicted_disease)
     st.write(f"**About {predicted_disease}:** {description}")
     
-    # Display bar chart for all diseases likelihood
+    # Display bar chart for the top 5 diseases likelihood
     disease_confidence = {DISEASES[i]: prediction_probs[i] for i in range(len(DISEASES))}
-    disease_confidence_sorted = dict(sorted(disease_confidence.items(), key=lambda item: item[1], reverse=True))
     
-    # Create a bar chart of the disease probabilities
-    st.bar_chart(pd.DataFrame(disease_confidence_sorted.values(), index=disease_confidence_sorted.keys(), columns=["Likelihood"]))
+    # Sort by confidence in descending order and get top 5
+    top_5_diseases = dict(sorted(disease_confidence.items(), key=lambda item: item[1], reverse=True)[:5])
+    
+    # Create a bar chart of the top 5 diseases
+    st.bar_chart(pd.DataFrame(top_5_diseases.values(), index=top_5_diseases.keys(), columns=["Likelihood"]))
