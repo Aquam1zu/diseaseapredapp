@@ -50,18 +50,35 @@ st.write("Select symptoms to predict the possible disease.")
 selected_symptoms = st.multiselect("Select symptoms:", SYMPTOMS)
 
 if st.button("Predict Disease"):
+    # Prepare input data for prediction
     symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
+    
+    # Predict using the model
     prediction = model.predict(symptom_values)
     
-    predicted_index = np.argmax(prediction)
+    # Get all prediction probabilities
+    prediction_probs = prediction[0]
+    
+    # Get predicted disease (max probability)
+    predicted_index = np.argmax(prediction_probs)
     predicted_disease = DISEASES[predicted_index]
     
-    confidence_score = prediction[0][predicted_index]  # Extract confidence score
-    confidence_percentage = round(confidence_score * 100, 2)  # Convert to percentage
-
+    # Get the confidence score (percentage)
+    confidence_score = prediction_probs[predicted_index]
+    confidence_percentage = round(confidence_score * 100, 2)
+    
+    # Display the predicted disease and confidence
     st.success(f"Predicted Disease: **{predicted_disease}**")
     st.write(f"Confidence: **{confidence_percentage}%**")
     
     # Fetch and display disease description from Wikipedia
     description = get_disease_description(predicted_disease)
     st.write(f"**About {predicted_disease}:** {description}")
+    
+    # Display bar chart for all diseases likelihood
+    disease_confidence = {DISEASES[i]: prediction_probs[i] for i in range(len(DISEASES))}
+    disease_confidence_sorted = dict(sorted(disease_confidence.items(), key=lambda item: item[1], reverse=True))
+    
+    # Create a bar chart of the disease probabilities
+    st.bar_chart(pd.DataFrame(disease_confidence_sorted.values(), index=disease_confidence_sorted.keys(), columns=["Likelihood"]))
+
