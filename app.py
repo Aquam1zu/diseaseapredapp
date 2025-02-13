@@ -4,12 +4,13 @@ import pandas as pd
 import numpy as np
 import gdown
 from tensorflow.keras.models import load_model
+import wikipedia
 
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
 MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
 
-@st.cache
+@st.cache_data
 def load_data():
     # Download Dataset
     csv_path = "Final_Augmented_dataset_Diseases_and_Symptoms.csv"
@@ -22,7 +23,7 @@ def load_data():
     DISEASES = df["diseases"].unique()
     return df, SYMPTOMS, DISEASES
 
-@st.cache
+@st.cache_resource
 def load_model_from_drive():
     # Download Model
     model_path = "disease_prediction_model.h5"
