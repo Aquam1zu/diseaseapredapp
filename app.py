@@ -5,6 +5,10 @@ import numpy as np
 import gdown
 from tensorflow.keras.models import load_model
 import wikipedia
+import tensorflow as tf
+
+# Force TensorFlow to use the CPU (if you don't need GPU acceleration)
+tf.config.set_visible_devices([], 'GPU')
 
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
@@ -81,4 +85,3 @@ if st.button("Predict Disease"):
     
     # Create a bar chart of the disease probabilities
     st.bar_chart(pd.DataFrame(disease_confidence_sorted.values(), index=disease_confidence_sorted.keys(), columns=["Likelihood"]))
-
