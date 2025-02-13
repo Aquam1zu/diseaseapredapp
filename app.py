@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import gdown
 from tensorflow.keras.models import load_model
+import wikipedia
 
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
@@ -27,6 +28,20 @@ if not os.path.exists(model_path):
 # Load the model from .h5 file
 model = load_model(model_path)
 
+# Function to get disease description
+def get_disease_description(disease_name):
+    try:
+        # Search for disease page on Wikipedia
+        page = wikipedia.page(disease_name)
+        return page.summary  # Return the first paragraph (summary)
+    except wikipedia.exceptions.DisambiguationError as e:
+        # In case of disambiguation (multiple pages with similar names)
+        return f"Multiple diseases found for {disease_name}, please check the exact name."
+    except wikipedia.exceptions.HTTPTimeoutError:
+        return "Error: Could not fetch data from Wikipedia."
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 # Streamlit UI
 st.title("Disease Prediction System")
 st.write("Select symptoms to predict the possible disease.")
@@ -46,3 +61,7 @@ if st.button("Predict Disease"):
 
     st.success(f"Predicted Disease: **{predicted_disease}**")
     st.write(f"Confidence: **{confidence_percentage}%**")
+    
+    # Fetch and display disease description from Wikipedia
+    description = get_disease_description(predicted_disease)
+    st.write(f"**About {predicted_disease}:** {description}")
