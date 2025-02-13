@@ -7,8 +7,31 @@ from tensorflow.keras.models import load_model
 import wikipedia
 import tensorflow as tf
 
-# Force TensorFlow to use the CPU (if you don't need GPU acceleration)
+# Force TensorFlow to use CPU
 tf.config.set_visible_devices([], 'GPU')
+
+# Page Layout Styling
+st.set_page_config(layout="wide")  # Expands the app width
+
+# Custom CSS for styling
+st.markdown("""
+    <style>
+        .main {
+            text-align: center;
+        }
+        div.stButton > button {
+            width: 100%;
+            background-color: #FF4B4B;
+            color: white;
+            font-size: 18px;
+            border-radius: 10px;
+        }
+        div[data-testid="stVerticalBlock"] {  /* Adjust general container */
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
@@ -29,61 +52,51 @@ model_path = "disease_prediction_model.h5"
 if not os.path.exists(model_path):
     gdown.download(f"https://drive.google.com/uc?id={MODEL_FILE_ID}", model_path, quiet=False)
 
-# Load the model from .h5 file
+# Load the model
 model = load_model(model_path)
 
-# Function to get disease description
+# Function to fetch disease description
 def get_disease_description(disease_name):
     try:
-        # Search for disease page on Wikipedia
         page = wikipedia.page(disease_name)
-        return page.summary  # Return the first paragraph (summary)
-    except wikipedia.exceptions.DisambiguationError as e:
-        # In case of disambiguation (multiple pages with similar names)
-        return f"Multiple diseases found for {disease_name}, please check the exact name."
+        return page.summary  
+    except wikipedia.exceptions.DisambiguationError:
+        return f"Multiple results for {disease_name}, refine your query."
     except wikipedia.exceptions.HTTPTimeoutError:
-        return "Error: Could not fetch data from Wikipedia."
+        return "Error fetching data from Wikipedia."
     except Exception as e:
         return f"Error: {str(e)}"
 
-# Streamlit UI
-st.title("Disease Prediction System")
-st.write("Select symptoms to predict the possible disease.")
+# === UI Layout ===
+st.title("🩺 Disease Prediction System")
 
-# Symptom selection
-selected_symptoms = st.multiselect("Select symptoms:", SYMPTOMS)
+st.write("### Select symptoms to predict possible diseases.")
 
-if st.button("Predict Disease"):
-    # Prepare input data for prediction
-    symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
-    
-    # Predict using the model
-    prediction = model.predict(symptom_values)
-    
-    # Get all prediction probabilities
-    prediction_probs = prediction[0]
-    
-    # Get predicted disease (max probability)
-    predicted_index = np.argmax(prediction_probs)
-    predicted_disease = DISEASES[predicted_index]
-    
-    # Get the confidence score (percentage)
-    confidence_score = prediction_probs[predicted_index]
-    confidence_percentage = round(confidence_score * 100, 2)
-    
-    # Display the predicted disease and confidence
-    st.success(f"Predicted Disease: **{predicted_disease}**")
-    st.write(f"Confidence: **{confidence_percentage}%**")
-    
-    # Fetch and display disease description from Wikipedia
-    description = get_disease_description(predicted_disease)
-    st.write(f"**About {predicted_disease}:** {description}")
-    
-    # Display bar chart for the top 5 diseases likelihood
-    disease_confidence = {DISEASES[i]: prediction_probs[i] for i in range(len(DISEASES))}
-    
-    # Sort by confidence in descending order and get top 5
-    top_5_diseases = dict(sorted(disease_confidence.items(), key=lambda item: item[1], reverse=True)[:5])
-    
-    # Create a bar chart of the top 5 diseases
-    st.bar_chart(pd.DataFrame(top_5_diseases.values(), index=top_5_diseases.keys(), columns=["Likelihood"]))
+# Organizing UI elements using columns
+col1, col2 = st.columns([2, 3])  # Left for selection, right for output
+
+with col1:
+    selected_symptoms = st.multiselect("Select Symptoms:", SYMPTOMS)
+    if st.button("🔍 Predict Disease"):
+        symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
+        prediction = model.predict(symptom_values)
+        prediction_probs = prediction[0]
+        
+        # Get the top predicted disease
+        predicted_index = np.argmax(prediction_probs)
+        predicted_disease = DISEASES[predicted_index]
+        confidence_score = round(prediction_probs[predicted_index] * 100, 2)
+
+        # Show results on the right
+        with col2:
+            st.success(f"### 🎯 Predicted Disease: **{predicted_disease}**")
+            st.write(f"🟢 Confidence: **{confidence_score}%**")
+            description = get_disease_description(predicted_disease)
+            st.write(f"📝 **About {predicted_disease}:** {description}")
+
+            # Show Top 5 Predictions as Bar Chart
+            disease_confidence = {DISEASES[i]: prediction_probs[i] for i in range(len(DISEASES))}
+            top_5_diseases = dict(sorted(disease_confidence.items(), key=lambda item: item[1], reverse=True)[:5])
+
+            st.write("### 📊 Likelihood of Top 5 Diseases:")
+            st.bar_chart(pd.DataFrame(top_5_diseases.values(), index=top_5_diseases.keys(), columns=["Likelihood"]))
