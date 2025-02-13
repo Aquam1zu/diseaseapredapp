@@ -10,29 +10,46 @@ import wikipedia
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
 MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
 
-@st.cache_data
 def load_data():
     # Download Dataset
     csv_path = "Final_Augmented_dataset_Diseases_and_Symptoms.csv"
     if not os.path.exists(csv_path):
-        gdown.download(f"https://drive.google.com/uc?id={CSV_FILE_ID}", csv_path, quiet=False)
+        try:
+            st.write("Downloading dataset...")
+            gdown.download(f"https://drive.google.com/uc?id={CSV_FILE_ID}", csv_path, quiet=False)
+            st.write("Dataset downloaded successfully.")
+        except Exception as e:
+            st.error(f"Error downloading dataset: {str(e)}")
+            return None, None, None
     
     # Load dataset
-    df = pd.read_csv(csv_path)
-    SYMPTOMS = [col for col in df.columns if col.lower() != "diseases"]
-    DISEASES = df["diseases"].unique()
-    return df, SYMPTOMS, DISEASES
+    try:
+        df = pd.read_csv(csv_path)
+        SYMPTOMS = [col for col in df.columns if col.lower() != "diseases"]
+        DISEASES = df["diseases"].unique()
+        return df, SYMPTOMS, DISEASES
+    except Exception as e:
+        st.error(f"Error loading dataset: {str(e)}")
+        return None, None, None
 
-@st.cache_resource
 def load_model_from_drive():
-    # Download Model
     model_path = "disease_prediction_model.h5"
     if not os.path.exists(model_path):
-        gdown.download(f"https://drive.google.com/uc?id={MODEL_FILE_ID}", model_path, quiet=False)
+        try:
+            st.write("Downloading model...")
+            gdown.download(f"https://drive.google.com/uc?id={MODEL_FILE_ID}", model_path, quiet=False)
+            st.write("Model downloaded successfully.")
+        except Exception as e:
+            st.error(f"Error downloading model: {str(e)}")
+            return None
     
     # Load the model from .h5 file
-    model = load_model(model_path)
-    return model
+    try:
+        model = load_model(model_path)
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
+        return None
 
 # Function to get disease description
 def get_disease_description(disease_name):
@@ -54,7 +71,12 @@ st.write("Select symptoms to predict the possible disease.")
 
 # Load data and model
 df, SYMPTOMS, DISEASES = load_data()
+if df is None or SYMPTOMS is None or DISEASES is None:
+    st.stop()  # Stop the execution if there's an error loading data
+
 model = load_model_from_drive()
+if model is None:
+    st.stop()  # Stop the execution if there's an error loading the model
 
 # Symptom selection
 selected_symptoms = st.multiselect("Select symptoms:", SYMPTOMS)
