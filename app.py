@@ -15,16 +15,34 @@ MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
 csv_path = "Final_Augmented_dataset_Diseases_and_Symptoms.csv"
 model_path = "disease_prediction_model.h5"
 
-def analyze_symptom_significance(model, selected_symptoms, predicted_disease_index, SYMPTOMS):
-    """Analyzes the significance of selected symptoms for the predicted disease."""
-    weights = model.layers[0].get_weights()[0]
-    
+def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYMPTOMS):
+    """
+    Analyzes the significance of selected symptoms using prediction differences.
+    Uses a different approach that doesn't rely on model weights.
+    """
     significance_scores = {}
-    for symptom in selected_symptoms:
-        symptom_index = SYMPTOMS.index(symptom)
-        significance = abs(weights[symptom_index][predicted_disease_index])
-        significance_scores[symptom] = significance
+    baseline_prediction = prediction_array[0]
     
+    # Create base symptom array with all selected symptoms
+    base_symptoms = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
+    
+    # Test each symptom's significance by removing it
+    for symptom in selected_symptoms:
+        # Create a copy of the base symptoms
+        test_symptoms = base_symptoms.copy()
+        # Find the index of the current symptom
+        symptom_index = SYMPTOMS.index(symptom)
+        # Remove this symptom (set to 0)
+        test_symptoms[0][symptom_index] = 0
+        
+        # Get new prediction without this symptom
+        new_prediction = model.predict(test_symptoms)[0]
+        
+        # Calculate significance as the difference in prediction
+        significance = np.abs(baseline_prediction - new_prediction).max()
+        significance_scores[symptom] = float(significance)
+    
+    # Create DataFrame and sort by significance
     significance_df = pd.DataFrame.from_dict(
         significance_scores, 
         orient='index', 
@@ -45,7 +63,7 @@ def plot_symptom_significance(significance_df):
     )
     
     ax.set_title('Symptom Significance Analysis', pad=20)
-    ax.set_xlabel('Relative Significance')
+    ax.set_xlabel('Impact on Prediction')
     ax.set_ylabel('Symptoms')
     
     ax.spines['top'].set_visible(False)
@@ -119,7 +137,6 @@ def main():
                 top_5_diseases = {DISEASES[i]: prediction[0][i] for i in top_5_indices}
                 
                 predicted_disease = list(top_5_diseases.keys())[0]
-                predicted_disease_index = list(DISEASES).index(predicted_disease)
                 confidence_score = top_5_diseases[predicted_disease] * 100
 
                 with col2:
@@ -138,23 +155,23 @@ def main():
                     ))
 
                     st.write("### 🔍 Symptom Significance Analysis")
-                    st.write("This shows how much each symptom contributed to the prediction:")
+                    st.write("This shows how each symptom influenced the prediction:")
                     
                     significance_df = analyze_symptom_significance(
                         model, 
                         selected_symptoms, 
-                        predicted_disease_index,
+                        prediction,
                         SYMPTOMS
                     )
                     
                     most_sig_symptom = significance_df.index[0]
                     most_sig_value = significance_df.iloc[0]['Significance']
-                    st.write(f"**Most significant symptom:** {most_sig_symptom} (Relative importance: {most_sig_value:.4f})")
+                    st.write(f"**Most influential symptom:** {most_sig_symptom} (Impact score: {most_sig_value:.4f})")
                     
                     fig = plot_symptom_significance(significance_df)
                     st.pyplot(fig)
 
-                    st.write("### 📋 Detailed Symptom Significance Scores")
+                    st.write("### 📋 Detailed Symptom Impact Scores")
                     st.dataframe(significance_df.style.format({'Significance': '{:.4f}'}))
 
             except Exception as e:
