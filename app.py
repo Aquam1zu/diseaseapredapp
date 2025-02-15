@@ -130,44 +130,48 @@ def main():
     predict_button = st.button("🔍 Predict Disease")
 
     if predict_button and selected_symptoms:
-        with st.spinner('Analyzing symptoms...'):
-            try:
-                symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
-                prediction = model.predict(symptom_values)
-                
-                top_5_indices = np.argsort(prediction[0])[-5:][::-1]
-                top_5_diseases = {DISEASES[i]: prediction[0][i] for i in top_5_indices}
-                
-                predicted_disease = list(top_5_diseases.keys())[0]
-                confidence_score = top_5_diseases[predicted_disease] * 100
-
-                st.success(f"🎯 Predicted Disease: **{predicted_disease}**")
-                st.write(f"🟢 Confidence: **{confidence_score:.2f}%**")
-                
-                description = get_disease_description(predicted_disease)
-                st.write(f"### ℹ️ About {predicted_disease}:")
-                st.write(description)
-                
-                st.write("### 📊 Likelihood of Top 5 Diseases:")
-                st.bar_chart(pd.DataFrame(
-                    top_5_diseases.values(),
-                    index=top_5_diseases.keys(),
-                    columns=["Likelihood"]
-                ))
-                
-                st.write("### 🔍 Symptom Significance Analysis")
-                significance_df = analyze_symptom_significance(
-                    model, 
-                    selected_symptoms, 
-                    prediction,
-                    SYMPTOMS
-                )
-                
-                fig = plot_symptom_significance(significance_df)
-                st.pyplot(fig)
+    with st.spinner('Analyzing symptoms...'):
+        try:
+            symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
+            prediction = model.predict(symptom_values)
             
-            except Exception as e:
-                st.error(f"Error during prediction: {str(e)}")
+            top_5_indices = np.argsort(prediction[0])[-5:][::-1]
+            top_5_diseases = {DISEASES[i]: prediction[0][i] for i in top_5_indices}
+            
+            predicted_disease = list(top_5_diseases.keys())[0]
+            confidence_score = top_5_diseases[predicted_disease] * 100
+
+            st.success(f"🎯 Predicted Disease: **{predicted_disease}**")
+            st.write(f"🟢 Confidence: **{confidence_score:.2f}%**")
+            
+            # Recommendation for low confidence score
+            if confidence_score < 70:
+                st.warning("⚠️ The confidence in this prediction is below 70%. It is highly recommended that you consult a doctor for a more accurate diagnosis and better treatment options.")
+            
+            description = get_disease_description(predicted_disease)
+            st.write(f"### ℹ️ About {predicted_disease}:")
+            st.write(description)
+            
+            st.write("### 📊 Likelihood of Top 5 Diseases:")
+            st.bar_chart(pd.DataFrame(
+                top_5_diseases.values(),
+                index=top_5_diseases.keys(),
+                columns=["Likelihood"]
+            ))
+            
+            st.write("### 🔍 Symptom Significance Analysis")
+            significance_df = analyze_symptom_significance(
+                model, 
+                selected_symptoms, 
+                prediction,
+                SYMPTOMS
+            )
+            
+            fig = plot_symptom_significance(significance_df)
+            st.pyplot(fig)
+        
+        except Exception as e:
+            st.error(f"Error during prediction: {str(e)}")
 
 if __name__ == "__main__":
     main()
