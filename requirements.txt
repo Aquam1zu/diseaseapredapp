@@ -44,3 +44,4 @@ gdown
 tensorflow
 wikipedia
 matplotlib
+plotly
