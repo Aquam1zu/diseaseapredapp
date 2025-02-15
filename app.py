@@ -61,7 +61,7 @@ def wrap_text(text, width=50):
     return "<br>".join(textwrap.wrap(text, width))
 
 def plot_disease_likelihood_with_hover(top_5_diseases):
-    """Creates a bar chart where hovering shows disease descriptions smoothly."""
+    """Creates a bar chart where hovering shows disease descriptions in wrapped text."""
     disease_names = list(top_5_diseases.keys())
     likelihoods = list(top_5_diseases.values())
 
@@ -74,19 +74,17 @@ def plot_disease_likelihood_with_hover(top_5_diseases):
         y=disease_names,
         orientation='h',
         marker=dict(color='#00FF00', opacity=0.6),
-        hoverinfo="none",  # Disables default hover behavior
-        hovertemplate="<b>%{y}</b><br>%{customdata}<extra></extra>",  # Custom hover format
-        customdata=descriptions,  # Wrapped descriptions
+        hoverinfo='text',  # Show text when hovering
+        hovertext=descriptions  # Use wrapped descriptions
     ))
 
     fig.update_layout(
         title="Likelihood of Top 5 Diseases",
         xaxis_title="Likelihood",
         yaxis_title="Diseases",
-        template="plotly_white",
+        template='plotly_white',
         margin=dict(l=80, r=20, t=40, b=60),
-        height=400,  # Adjust the height for better layout
-        hovermode="y unified",  # Makes hover smoother along the Y-axis
+        height=400  # Adjust the height for better layout
     )
 
     return fig
