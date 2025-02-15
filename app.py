@@ -156,12 +156,13 @@ def main():
                 symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
                 prediction = model.predict(symptom_values)
                 
+                # Calculate top 5 diseases based on prediction
                 top_5_indices = np.argsort(prediction[0])[-5:][::-1]
                 top_5_diseases = {DISEASES[i]: prediction[0][i] for i in top_5_indices}
                 
                 predicted_disease = list(top_5_diseases.keys())[0]
                 confidence_score = top_5_diseases[predicted_disease] * 100
-    
+
                 st.success(f"🎯 Predicted Disease: **{predicted_disease}**")
                 st.write(f"🟢 Confidence: **{confidence_score:.2f}%**")
                 
@@ -174,12 +175,10 @@ def main():
                 st.write(description)
                 
                 st.write("### 📊 Likelihood of Top 5 Diseases:")
-                st.bar_chart(pd.DataFrame(
-                    top_5_diseases.values(),
-                    index=top_5_diseases.keys(),
-                    columns=["Likelihood"]
-                ))
-                
+                # Call the Plotly chart with the top 5 diseases
+                fig_likelihood = plot_disease_likelihood_with_click(top_5_diseases)
+                st.plotly_chart(fig_likelihood)
+
                 st.write("### 🔍 Symptom Significance Analysis")
                 significance_df = analyze_symptom_significance(
                     model, 
@@ -188,11 +187,19 @@ def main():
                     SYMPTOMS
                 )
                 
-                fig = plot_symptom_significance(significance_df)
-                st.pyplot(fig)
-        
+                fig_significance = plot_symptom_significance(significance_df)
+                st.pyplot(fig_significance)
+                
+                # Handle clicks on disease bars to show descriptions
+                clicked_disease = st.session_state.get("clicked_disease")
+                if clicked_disease:
+                    description = get_disease_description(clicked_disease)
+                    st.write(f"### ℹ️ About {clicked_disease}:")
+                    st.write(description)
+
             except Exception as e:
                 st.error(f"Error during prediction: {str(e)}")
+
 
 def on_click(trace, points, selector):
     if points.point_inds:
