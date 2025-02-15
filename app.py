@@ -7,8 +7,6 @@ from tensorflow.keras.models import load_model
 import wikipedia
 import matplotlib.pyplot as plt
 
-st.set_page_config(layout="wide")
-
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
 MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
@@ -123,12 +121,9 @@ def main():
 
     st.write("### Select symptoms to predict possible diseases.")
 
-    col1, col2 = st.columns([1, 3])
-
-    with col1:
-        selected_symptoms = st.multiselect("Select Symptoms:", SYMPTOMS)
-        predict_button = st.button("🔍 Predict Disease")
-
+    selected_symptoms = st.multiselect("Select Symptoms:", SYMPTOMS)
+    predict_button = st.button("🔍 Predict Disease")
+    
     if predict_button and selected_symptoms:
         with st.spinner('Analyzing symptoms...'):
             try:
@@ -141,40 +136,27 @@ def main():
                 predicted_disease = list(top_5_diseases.keys())[0]
                 confidence_score = top_5_diseases[predicted_disease] * 100
 
-                with col2:
-                    st.success(f"🎯 Predicted Disease: **{predicted_disease}**")
-                    st.write(f"🟢 Confidence: **{confidence_score:.2f}%**")
+                st.success(f"🎯 Predicted Disease: **{predicted_disease}**")
+                st.write(f"🟢 Confidence: **{confidence_score:.2f}%**")
 
-                    description = get_disease_description(predicted_disease)
-                    st.write(f"### ℹ️ About {predicted_disease}:")
-                    st.write(description)
+                description = get_disease_description(predicted_disease)
+                st.write(f"### ℹ️ About {predicted_disease}:")
+                st.write(description)
+                
+                st.write("### 📊 Likelihood of Top 5 Diseases:")
+                st.bar_chart(pd.DataFrame(
+                    top_5_diseases.values(),
+                    index=top_5_diseases.keys(),
+                    columns=["Likelihood"]
+                ))
+                
+                st.write("### 🔍 Symptom Significance Analysis")
+                significance_df = analyze_symptom_significance(model, selected_symptoms, prediction, SYMPTOMS)
+                fig = plot_symptom_significance(significance_df)
+                st.pyplot(fig)
 
-                    st.write("### 📊 Likelihood of Top 5 Diseases:")
-                    st.bar_chart(pd.DataFrame(
-                        top_5_diseases.values(),
-                        index=top_5_diseases.keys(),
-                        columns=["Likelihood"]
-                    ))
-
-                    st.write("### 🔍 Symptom Significance Analysis")
-                    st.write("This shows how each symptom influenced the prediction:")
-                    
-                    significance_df = analyze_symptom_significance(
-                        model, 
-                        selected_symptoms, 
-                        prediction,
-                        SYMPTOMS
-                    )
-                    
-                    most_sig_symptom = significance_df.index[0]
-                    most_sig_value = significance_df.iloc[0]['Significance']
-                    st.write(f"**Most influential symptom:** {most_sig_symptom} (Impact score: {most_sig_value:.4f})")
-                    
-                    fig = plot_symptom_significance(significance_df)
-                    st.pyplot(fig)
-
-                    st.write("### 📋 Detailed Symptom Impact Scores")
-                    st.dataframe(significance_df.style.format({'Significance': '{:.4f}'}))
+                st.write("### 📋 Detailed Symptom Impact Scores")
+                st.dataframe(significance_df.style.format({'Significance': '{:.4f}'}))
 
             except Exception as e:
                 st.error(f"Error during prediction: {str(e)}")
