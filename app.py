@@ -55,6 +55,26 @@ def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYM
     
     return significance_df
 
+def plot_disease_likelihood_with_click(top_5_diseases):
+    """Creates a clickable bar chart to display likelihood of top 5 diseases."""
+    fig = go.Figure(go.Bar(
+        x=list(top_5_diseases.values()),
+        y=list(top_5_diseases.keys()),
+        orientation='h',
+        marker=dict(color='#00FF00', opacity=0.6)
+    ))
+
+    fig.update_layout(
+        title="Likelihood of Top 5 Diseases",
+        xaxis_title="Likelihood",
+        yaxis_title="Diseases",
+        template='plotly_white',
+        margin=dict(l=80, r=20, t=40, b=60),
+        height=400  # Adjust the height for better layout
+    )
+
+    return fig
+
 def plot_symptom_significance(significance_df):
     """Creates a horizontal bar plot of symptom significance."""
     fig, ax = plt.subplots(figsize=(7, min(2.5, len(significance_df) * 0.25)))  # Adjust the height dynamically
@@ -173,6 +193,19 @@ def main():
         
             except Exception as e:
                 st.error(f"Error during prediction: {str(e)}")
+
+def on_click(trace, points, selector):
+    if points.point_inds:
+        clicked_disease = trace.y[points.point_inds[0]]
+        st.session_state["clicked_disease"] = clicked_disease
+
+# Attach the click event handler to the Plotly chart
+st.session_state["clicked_disease"] = None
+
+# Generate and display the disease likelihood chart with click functionality
+fig_likelihood = plot_disease_likelihood_with_click(top_5_diseases)
+fig_likelihood.data[0].on_click(on_click)
+st.plotly_chart(fig_likelihood)
 
 if __name__ == "__main__":
     main()
