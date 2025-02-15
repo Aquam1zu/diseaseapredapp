@@ -55,13 +55,22 @@ def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYM
     
     return significance_df
 
-def plot_disease_likelihood_with_click(top_5_diseases):
-    """Creates a clickable bar chart to display likelihood of top 5 diseases."""
+def plot_disease_likelihood_with_hover(top_5_diseases):
+    """Creates a bar chart where hovering shows disease descriptions."""
+    disease_names = list(top_5_diseases.keys())
+    likelihoods = list(top_5_diseases.values())
+
+    # Fetch descriptions for all top 5 diseases
+    descriptions = [get_disease_description(disease) for disease in disease_names]
+
+    # Create Plotly bar chart
     fig = go.Figure(go.Bar(
-        x=list(top_5_diseases.values()),
-        y=list(top_5_diseases.keys()),
+        x=likelihoods,
+        y=disease_names,
         orientation='h',
-        marker=dict(color='#00FF00', opacity=0.6)
+        marker=dict(color='#00FF00', opacity=0.6),
+        hoverinfo='text',  # Show text when hovering
+        hovertext=descriptions  # Use fetched descriptions
     ))
 
     fig.update_layout(
@@ -175,8 +184,8 @@ def main():
                 st.write(description)
                 
                 st.write("### 📊 Likelihood of Top 5 Diseases:")
-                # Call the Plotly chart with the top 5 diseases
-                fig_likelihood = plot_disease_likelihood_with_click(top_5_diseases)
+                # Call the Plotly chart with hover descriptions
+                fig_likelihood = plot_disease_likelihood_with_hover(top_5_diseases)
                 st.plotly_chart(fig_likelihood)
 
                 st.write("### 🔍 Symptom Significance Analysis")
@@ -189,25 +198,10 @@ def main():
                 
                 fig_significance = plot_symptom_significance(significance_df)
                 st.pyplot(fig_significance)
-                
-                # Handle clicks on disease bars to show descriptions
-                clicked_disease = st.session_state.get("clicked_disease")
-                if clicked_disease:
-                    description = get_disease_description(clicked_disease)
-                    st.write(f"### ℹ️ About {clicked_disease}:")
-                    st.write(description)
 
             except Exception as e:
                 st.error(f"Error during prediction: {str(e)}")
 
-
-def on_click(trace, points, selector):
-    if points.point_inds:
-        clicked_disease = trace.y[points.point_inds[0]]
-        st.session_state["clicked_disease"] = clicked_disease
-
-# Attach the click event handler to the Plotly chart
-st.session_state["clicked_disease"] = None
 
 if __name__ == "__main__":
     main()
