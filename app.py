@@ -56,8 +56,7 @@ def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYM
 
 def plot_symptom_significance(significance_df):
     """Creates a horizontal bar plot of symptom significance."""
-    fig, ax = plt.subplots(figsize=(7, max(2.5, len(significance_df) * 0.25)))
-    
+    fig, ax = plt.subplots(figsize=(7, min(2.5, len(significance_df) * 0.25)))  # Adjust the height dynamically
     significance_df.plot(
         kind='barh',
         ax=ax,
@@ -73,6 +72,10 @@ def plot_symptom_significance(significance_df):
     ax.spines['right'].set_visible(False)
     
     plt.tight_layout()
+
+    # Resize the figure to fit the app's layout
+    fig.set_size_inches(7, min(2.5, len(significance_df) * 0.25))  # Ensure it's not too large
+
     return fig
 
 @st.cache_data
