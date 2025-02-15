@@ -53,7 +53,7 @@ def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYM
 
 def plot_symptom_significance(significance_df):
     """Creates a horizontal bar plot of symptom significance."""
-    fig, ax = plt.subplots(figsize=(10, max(4, len(significance_df) * 0.4)))
+    fig, ax = plt.subplots(figsize=(8, max(3, len(significance_df) * 0.3)))  # Reduced size slightly
     
     significance_df.plot(
         kind='barh',
@@ -123,7 +123,7 @@ def main():
 
     selected_symptoms = st.multiselect("Select Symptoms:", SYMPTOMS)
     predict_button = st.button("🔍 Predict Disease")
-    
+
     if predict_button and selected_symptoms:
         with st.spinner('Analyzing symptoms...'):
             try:
@@ -151,13 +151,14 @@ def main():
                 ))
                 
                 st.write("### 🔍 Symptom Significance Analysis")
-                significance_df = analyze_symptom_significance(model, selected_symptoms, prediction, SYMPTOMS)
+                significance_df = analyze_symptom_significance(
+                    model, 
+                    selected_symptoms, 
+                    prediction,
+                    SYMPTOMS
+                )
                 fig = plot_symptom_significance(significance_df)
                 st.pyplot(fig)
-
-                st.write("### 📋 Detailed Symptom Impact Scores")
-                st.dataframe(significance_df.style.format({'Significance': '{:.4f}'}))
-
             except Exception as e:
                 st.error(f"Error during prediction: {str(e)}")
 
