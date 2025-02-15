@@ -74,7 +74,7 @@ def plot_symptom_significance(significance_df):
     plt.tight_layout()
 
     # Resize the figure to fit the app's layout
-    fig.set_size_inches(5, min(2.5, len(significance_df) * 0.25))  # Ensure it's not too large
+    fig.set_size_inches(9, min(2.5, len(significance_df) * 0.25))  # Ensure it's not too large
 
     return fig
 
