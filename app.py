@@ -130,7 +130,7 @@ def main():
     predict_button = st.button("🔍 Predict Disease")
 
     if predict_button and selected_symptoms:
-    with st.spinner('Analyzing symptoms...'):
+        with st.spinner('Analyzing symptoms...'):
         try:
             symptom_values = np.array([[1 if symptom in selected_symptoms else 0 for symptom in SYMPTOMS]])
             prediction = model.predict(symptom_values)
