@@ -6,6 +6,7 @@ import gdown
 from tensorflow.keras.models import load_model
 import wikipedia
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 # Set wide layout
 st.set_page_config(layout="wide")
