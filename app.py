@@ -7,6 +7,8 @@ from tensorflow.keras.models import load_model
 import wikipedia
 import matplotlib.pyplot as plt
 
+st.set_page_config(layout="wide")
+
 # Google Drive file IDs
 CSV_FILE_ID = "1SOGfczIm_XcFJqBxOaOB7kFsBQn3ZSv5"
 MODEL_FILE_ID = "1ojNVvOuEb6JyhknTyDVKV6IZrcMTHvog"
@@ -121,7 +123,7 @@ def main():
 
     st.write("### Select symptoms to predict possible diseases.")
 
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 3])
 
     with col1:
         selected_symptoms = st.multiselect("Select Symptoms:", SYMPTOMS)
