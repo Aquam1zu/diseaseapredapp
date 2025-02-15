@@ -7,6 +7,7 @@ from tensorflow.keras.models import load_model
 import wikipedia
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import textwrap
 
 # Set wide layout
 st.set_page_config(layout="wide")
@@ -55,13 +56,17 @@ def analyze_symptom_significance(model, selected_symptoms, prediction_array, SYM
     
     return significance_df
 
+def wrap_text(text, width=50):
+    """Wrap text into multiple lines for hover tooltips."""
+    return "<br>".join(textwrap.wrap(text, width))
+
 def plot_disease_likelihood_with_hover(top_5_diseases):
-    """Creates a bar chart where hovering shows disease descriptions."""
+    """Creates a bar chart where hovering shows disease descriptions in wrapped text."""
     disease_names = list(top_5_diseases.keys())
     likelihoods = list(top_5_diseases.values())
 
-    # Fetch descriptions for all top 5 diseases
-    descriptions = [get_disease_description(disease) for disease in disease_names]
+    # Fetch descriptions for all top 5 diseases and wrap text
+    descriptions = [wrap_text(get_disease_description(disease)[:250]) for disease in disease_names]
 
     # Create Plotly bar chart
     fig = go.Figure(go.Bar(
@@ -70,7 +75,7 @@ def plot_disease_likelihood_with_hover(top_5_diseases):
         orientation='h',
         marker=dict(color='#00FF00', opacity=0.6),
         hoverinfo='text',  # Show text when hovering
-        hovertext=descriptions  # Use fetched descriptions
+        hovertext=descriptions  # Use wrapped descriptions
     ))
 
     fig.update_layout(
