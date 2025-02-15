@@ -43,3 +43,4 @@ watchdog
 gdown
 tensorflow
 wikipedia
+matplotlib
