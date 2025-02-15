@@ -209,10 +209,5 @@ def on_click(trace, points, selector):
 # Attach the click event handler to the Plotly chart
 st.session_state["clicked_disease"] = None
 
-# Generate and display the disease likelihood chart with click functionality
-fig_likelihood = plot_disease_likelihood_with_click(top_5_diseases)
-fig_likelihood.data[0].on_click(on_click)
-st.plotly_chart(fig_likelihood)
-
 if __name__ == "__main__":
     main()
